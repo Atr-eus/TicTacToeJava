@@ -14,7 +14,7 @@ public class TicTacToePlayer extends Player {
     public void display() {
         super.display();
 
-        System.out.print("\nRandomly assigned symbol: ");
+        System.out.print("Randomly assigned symbol: ");
         if (this.get_symbol()) {
             System.out.print("O");
         } else {

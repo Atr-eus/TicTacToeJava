@@ -53,10 +53,6 @@ public class Board {
     }
 
     public boolean is_game_over() {
-        if (this.check_draw()) {
-            System.out.println("Game over, it's a draw!");
-            return true;
-        }
         char target = this.turn ? 'X' : 'O';
 
         for (int i = 0; i < 3; i++) {
@@ -74,6 +70,11 @@ public class Board {
 
         if ((board[0][0] == target && board[1][1] == target && board[2][2] == target) || (board[0][2] == target && board[1][1] == target && board[2][0] == target)) {
             System.out.println("Game over, " + target + " has won!");
+            return true;
+        }
+
+        if (this.check_draw()) {
+            System.out.println("Game over, it's a draw!");
             return true;
         }
 
