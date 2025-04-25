@@ -4,7 +4,7 @@ public class Board {
     private final char[][] board;
     private boolean turn;
 
-    public Board() {
+    Board() {
         this.board = new char[3][3];
         this.turn = new Random().nextBoolean();
 
@@ -31,16 +31,6 @@ public class Board {
         this.turn = !this.turn;
     }
 
-    public void display_board() {
-        for (int i = 0; i < 3; i++) {
-            System.out.print("|");
-            for (int j = 0; j < 3; j++) {
-                System.out.print(board[i][j] + "|");
-            }
-            System.out.println();
-        }
-    }
-
     private boolean check_draw() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -52,32 +42,26 @@ public class Board {
         return true;
     }
 
-    public boolean is_game_over() {
-        char target = this.turn ? 'X' : 'O';
-
+    public GameOverStatus is_game_over(char target) {
         for (int i = 0; i < 3; i++) {
             if (board[0][i] == target && board[1][i] == target && board[2][i] == target) {
-                System.out.println("Game over, " + target + " has won!");
-                return true;
+                return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
             }
         }
         for (int i = 0; i < 3; i++) {
             if (board[i][0] == target && board[i][1] == target && board[i][2] == target) {
-                System.out.println("Game over, " + target + " has won!");
-                return true;
+                return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
             }
         }
 
         if ((board[0][0] == target && board[1][1] == target && board[2][2] == target) || (board[0][2] == target && board[1][1] == target && board[2][0] == target)) {
-            System.out.println("Game over, " + target + " has won!");
-            return true;
+            return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
         }
 
         if (this.check_draw()) {
-            System.out.println("Game over, it's a draw!");
-            return true;
+            return GameOverStatus.DRAW;
         }
 
-        return false;
+        return GameOverStatus.ONGOING;
     }
 }
