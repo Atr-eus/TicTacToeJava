@@ -19,7 +19,7 @@ public class Board {
         return this.turn;
     }
 
-    public void play_move(int x, int y, boolean symbol) {
+    public void play_move(int x, int y) {
         x--;
         y--;
         if (x < 0 || x >= 3 || y < 0 || y >= 3 || board[x][y] != '-') {
@@ -27,7 +27,7 @@ public class Board {
             return;
         }
 
-        this.board[x][y] = symbol ? 'O' : 'X';
+        this.board[x][y] = this.turn ? 'O' : 'X';
         this.turn = !this.turn;
     }
 
@@ -42,20 +42,22 @@ public class Board {
         return true;
     }
 
-    public GameOverStatus is_game_over(char target) {
+    public GameOverStatus is_game_over() {
+        char target = this.turn ? 'X' : 'O';
+
         for (int i = 0; i < 3; i++) {
             if (board[0][i] == target && board[1][i] == target && board[2][i] == target) {
-                return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
+                return this.turn ? GameOverStatus.X : GameOverStatus.O;
             }
         }
         for (int i = 0; i < 3; i++) {
             if (board[i][0] == target && board[i][1] == target && board[i][2] == target) {
-                return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
+                return this.turn ? GameOverStatus.X : GameOverStatus.O;
             }
         }
 
         if ((board[0][0] == target && board[1][1] == target && board[2][2] == target) || (board[0][2] == target && board[1][1] == target && board[2][0] == target)) {
-            return target == 'X' ? GameOverStatus.O : GameOverStatus.X;
+            return this.turn ? GameOverStatus.X : GameOverStatus.O;
         }
 
         if (this.check_draw()) {

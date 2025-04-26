@@ -87,14 +87,12 @@ public class GameUI {
     }
 
     void make_move(int x, int y, JButton btn) {
-        char target = board.whose_turn() ? 'O' : 'X';
-
-        board.play_move(x, y, board.whose_turn());
-        btn.setText(board.whose_turn() ? "0" : "X");
+        board.play_move(x, y);
+        btn.setText(board.whose_turn() ? "X" : "O");
         btn.setEnabled(false);
-        status_label.setText("Current turn: " + (board.whose_turn() ? "X" : "O"));
+        status_label.setText("Current turn: " + (board.whose_turn() ? "O" : "X"));
 
-        GameOverStatus game_over_status = board.is_game_over(target);
+        GameOverStatus game_over_status = board.is_game_over();
         if(game_over_status != GameOverStatus.ONGOING) {
             String msg = switch(game_over_status) {
                 case X -> {
