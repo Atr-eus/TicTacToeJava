@@ -1,52 +1,67 @@
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 public class GameUI {
     private Board board;
+    private Connection connection;
     private final JFrame frame;
     private final JPanel info_panel;
     private final JPanel game_panel;
+    private TicTacToePlayer p1;
+    private TicTacToePlayer p2;
     private final JLabel p1_name;
     private final JLabel p1_mail;
+    private final JLabel p1_won;
     private final JLabel p1_symbol;
     private final JLabel p2_name;
     private final JLabel p2_mail;
+    private final JLabel p2_won;
     private final JLabel p2_symbol;
     private final JButton[][] tiles;
     private final JLabel status_label;
 
-    GameUI(TicTacToePlayer p1, TicTacToePlayer p2) {
+    GameUI(TicTacToePlayer player1, TicTacToePlayer player2, Connection connection) {
+        this.p1 = player1;
+        this.p2 = player2;
         p1.set_symbol(new Random().nextBoolean());
         p2.set_symbol(!p1.get_symbol());
 
-        board = new Board();
-        tiles = new JButton[3][3];
+        this.board = new Board();
+        this.connection = connection;
+        this.tiles = new JButton[3][3];
 
-        p1_name = new JLabel("Name: " + p1.get_name());
-        p1_mail = new JLabel("Email: " + p1.get_email());
-        p1_symbol = new JLabel("Symbol: " + (p1.get_symbol() ? "O" : "X"));
-        p2_name = new JLabel("Name: " + p2.get_name());
-        p2_mail = new JLabel("Email: " + p2.get_email());
-        p2_symbol = new JLabel("Symbol: " + (p2.get_symbol() ? "O" : "X"));
-        status_label = new JLabel("Current turn: " + (board.whose_turn() ? "O" : "X"));
+        this.p1_name = new JLabel("Name: " + p1.get_name());
+        this.p1_mail = new JLabel("Email: " + p1.get_email());
+        this.p1_won = new JLabel("Won: " + p1.get_won());
+        this.p1_symbol = new JLabel("Symbol: " + (p1.get_symbol() ? "O" : "X"));
+        this.p2_name = new JLabel("Name: " + p2.get_name());
+        this.p2_mail = new JLabel("Email: " + p2.get_email());
+        this.p2_won = new JLabel("Won: " + p2.get_won());
+        this.p2_symbol = new JLabel("Symbol: " + (p2.get_symbol() ? "O" : "X"));
+        this.status_label = new JLabel("Current turn: " + (board.whose_turn() ? "O" : "X"));
 
-        frame = new JFrame();
+        this.frame = new JFrame();
         frame.setTitle("Tic Tac Toe");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 400);
+        frame.setSize(400, 800);
         frame.setLayout(new BorderLayout());
 
-        info_panel = new JPanel();
-        info_panel.setLayout(new GridLayout(2, 2, 10, 10));
+        this.info_panel = new JPanel();
+        info_panel.setLayout(new GridLayout(2, 4, 10, 10));
         info_panel.add(p1_name);
         info_panel.add(p1_mail);
+        info_panel.add(p1_won);
         info_panel.add(p1_symbol);
         info_panel.add(p2_name);
         info_panel.add(p2_mail);
+        info_panel.add(p2_won);
         info_panel.add(p2_symbol);
 
-        game_panel = new JPanel();
+        this.game_panel = new JPanel();
         game_panel.setLayout(new GridLayout(3, 3, 5, 5));
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
@@ -56,9 +71,7 @@ public class GameUI {
                 btn.setFocusable(false);
 
                 final int x = i + 1, y = j + 1;
-                btn.addActionListener(_ -> {
-                    make_move(x, y, btn);
-                });
+                btn.addActionListener(_ -> make_move(x, y, btn));
 
                 tiles[i][j] = btn;
                 game_panel.add(btn);
@@ -84,8 +97,24 @@ public class GameUI {
         GameOverStatus game_over_status = board.is_game_over(target);
         if(game_over_status != GameOverStatus.ONGOING) {
             String msg = switch(game_over_status) {
-                case X -> "Player X is the winner.";
-                case O -> "Player O is the winner.";
+                case X -> {
+                    if(!p1.get_symbol()) {
+                        increment_won(p1, p1.get_email(), p1_won);
+                        yield p1.get_name() + " is the winner.";
+                    } else {
+                        increment_won(p2, p2.get_email(), p2_won);
+                        yield p2.get_name() + " is the winner.";
+                    }
+                }
+                case O -> {
+                    if(p1.get_symbol()) {
+                        increment_won(p1, p1.get_email(), p1_won);
+                        yield p1.get_name() + " is the winner.";
+                    } else {
+                        increment_won(p2, p2.get_email(), p2_won);
+                        yield p2.get_name() + " is the winner.";
+                    }
+                }
                 case DRAW -> "It is a draw.";
                 default -> "";
             };
@@ -99,7 +128,23 @@ public class GameUI {
         }
     }
 
-    void reset_board() {
+    private void increment_won(TicTacToePlayer player, String email, JLabel won_label) {
+        try {
+            String sql = "UPDATE credentials SET won = won + 1 WHERE email = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setString(1, email);
+            statement.executeUpdate();
+
+            player.set_won(player.get_won() + 1);
+            won_label.setText("Won: " + player.get_won());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Failed to update win count: " + e.getMessage());
+        }
+    }
+
+    private void reset_board() {
         board = new Board();
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
