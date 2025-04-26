@@ -24,13 +24,17 @@ public class GameUI {
     private final JButton[][] tiles;
     private final JLabel status_label;
 
-    GameUI(TicTacToePlayer player1, TicTacToePlayer player2, Connection connection) {
+    GameUI(TicTacToePlayer player1, TicTacToePlayer player2, Connection connection, String board_state, boolean turn) throws SQLException {
         this.p1 = player1;
         this.p2 = player2;
         p1.set_symbol(new Random().nextBoolean());
         p2.set_symbol(!p1.get_symbol());
 
         this.board = new Board();
+        if(board_state != null) {
+            board.load_board(board_state.toCharArray());
+            board.set_turn(turn);
+        }
         this.connection = connection;
         this.tiles = new JButton[3][3];
 
@@ -70,8 +74,15 @@ public class GameUI {
                 btn.setPreferredSize(new Dimension(100, 100));
                 btn.setFocusable(false);
 
+                if(board.get_tile(i, j) != '-') {
+                    btn.setText(String.valueOf(board.get_tile(i, j)));
+                    btn.setEnabled(false);
+                }
+
                 final int x = i + 1, y = j + 1;
-                btn.addActionListener(_ -> make_move(x, y, btn));
+                btn.addActionListener(_ -> {
+                    make_move(x, y, btn);
+                });
 
                 tiles[i][j] = btn;
                 game_panel.add(btn);
@@ -94,6 +105,8 @@ public class GameUI {
 
         GameOverStatus game_over_status = board.is_game_over();
         if(game_over_status != GameOverStatus.ONGOING) {
+            delete_game();
+
             String msg = switch(game_over_status) {
                 case X -> {
                     if(!p1.get_symbol()) {
@@ -122,7 +135,15 @@ public class GameUI {
                 this.reset_board();
             } else {
                 frame.dispose();
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "Failed to close connection: " + e.getMessage());
+                }
             }
+        } else {
+            save_game();
         }
     }
 
@@ -139,6 +160,50 @@ public class GameUI {
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Failed to update win count: " + e.getMessage());
+        }
+    }
+
+    private void save_game() {
+        try {
+            String email1 = p1.get_email();
+            String email2 = p2.get_email();
+            if(email1.compareTo(email2) > 0) {
+                String tmp = email1;
+                email1 = email2;
+                email2 = tmp;
+            }
+
+            PreparedStatement statement = connection.prepareStatement("REPLACE INTO saved_games (p1_email, p2_email, board_state, turn) VALUES (?, ?, ?, ?)");
+
+            statement.setString(1, email1);
+            statement.setString(2, email2);
+            statement.setString(3, board.serialize());
+            statement.setBoolean(4, board.whose_turn());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Failed to save game: " + e.getMessage());
+        }
+    }
+
+    public void delete_game() {
+        try {
+            String email1 = p1.get_email();
+            String email2 = p2.get_email();
+            if(email1.compareTo(email2) > 0) {
+                String tmp = email1;
+                email1 = email2;
+                email2 = tmp;
+            }
+
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM saved_games WHERE p1_email = ? AND p2_email = ?");
+
+            statement.setString(1, email1);
+            statement.setString(2, email2);
+            statement.executeUpdate();
+        } catch(SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Failed to delete game: " + e.getMessage());
         }
     }
 

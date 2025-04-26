@@ -151,13 +151,35 @@ public class LoginUI {
                 String name2 = res.getString("name");
                 int won2 = res.getInt("won");
 
-                JOptionPane.showMessageDialog(login_frame, "Logged in successfully, initiating a game between " + name1 + " and " + name2 + ".");
-                login_frame.dispose();
-                frame.dispose();
+                res = check_saved(email1, email2);
+                boolean has_saved = false;
+                String board_state = null;
+                boolean turn = true;
+
+                if(res.next()) {
+                    has_saved = true;
+                    board_state = res.getString("board_state");
+                    turn = res.getBoolean("turn");
+                }
 
                 player1 = new TicTacToePlayer(name1, email1, won1);
                 player2  = new TicTacToePlayer(name2, email2, won2);
-                new GameUI(player1, player2, connection);
+
+                if(has_saved) {
+                    int opt = JOptionPane.showConfirmDialog(frame, "An unfinished game between the two users was found. Load saved game? (If chosen no, the saved game will be lost.)", "Load Game", JOptionPane.YES_NO_OPTION);
+                    if(opt == JOptionPane.YES_OPTION) {
+                        new GameUI(player1, player2, connection, board_state, turn);
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Starting a new game between " + name1 + " and " + name2 + ".");
+                        new GameUI(player1, player2, connection, null, turn);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Logged in successfully. Starting a game between " + name1 + " and " + name2 + ".");
+                    new GameUI(player1, player2, connection, null, false);
+                }
+
+                login_frame.dispose();
+                frame.dispose();
             } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(login_frame, "Login failed: " + e.getMessage());
@@ -180,6 +202,23 @@ public class LoginUI {
 
         login_frame.setLocationRelativeTo(frame);
         login_frame.setVisible(true);
+    }
+
+    private ResultSet check_saved(String p1_email, String p2_email) throws SQLException {
+        if(p1_email.compareTo(p2_email) > 0) {
+            String tmp = p1_email;
+            p1_email = p2_email;
+            p2_email = tmp;
+        }
+
+        String sql = "SELECT board_state, turn FROM saved_games WHERE p1_email = ? AND p2_email = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        statement.setString(1, p1_email);
+        statement.setString(2, p2_email);
+        ResultSet res = statement.executeQuery();
+
+        return res;
     }
 
     private void connect_to_DB() {

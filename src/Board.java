@@ -19,6 +19,40 @@ public class Board {
         return this.turn;
     }
 
+    public void load_board(char[] board) {
+        for(int i = 0; i < 9; i++) {
+            int r = i / 3;
+            int c = i % 3;
+
+            this.board[r][c] = board[i];
+        }
+    }
+
+    public String serialize() {
+        char[] board = new char[9];
+
+        for(int i = 0; i < 9; i++) {
+            int r = i / 3;
+            int c = i % 3;
+
+            board[i] = this.board[r][c];
+        }
+
+        return new String(board);
+    }
+
+    public void set_turn(boolean turn) {
+        this.turn = turn;
+    }
+
+    public char get_tile(int x, int y) {
+        if(x < 0 || x >= 3 || y < 0 || y >= 3) {
+            return '-';
+        }
+
+        return this.board[x][y];
+    }
+
     public void play_move(int x, int y) {
         x--;
         y--;
