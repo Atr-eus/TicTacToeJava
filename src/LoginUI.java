@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import java.util.Arrays;
 
 public class LoginUI {
     private final String DB_URL = "jdbc:mysql://localhost:3306/entries";
@@ -49,20 +50,23 @@ public class LoginUI {
         register_btn.addActionListener(_ -> {
             String name = name_field.getText().trim();
             String email = email_field.getText().trim();
-            String passwd = new String(passwd_field.getPassword());
+            char[] passwd = passwd_field.getPassword();
 
-            if(name.isEmpty() || email.isEmpty() || passwd.isEmpty()) {
+            if(name.isEmpty() || email.isEmpty() || passwd.length == 0) {
                 JOptionPane.showMessageDialog(register_frame, "Please fill in all the fields.");
                 return;
             }
 
             try {
+                String hashed_passwd = CryptoUtil.hash_passwd(passwd);
+                Arrays.fill(passwd, '\0');
+
                 String sql = "INSERT INTO credentials (name, email, won, passwd) VALUES (?, ?, 0, ?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
 
                 statement.setString(1, name);
                 statement.setString(2, email);
-                statement.setString(3, passwd);
+                statement.setString(3, hashed_passwd);
                 statement.executeUpdate();
 
                 JOptionPane.showMessageDialog(register_frame, "Registered successfully as " + email + ".");
@@ -72,6 +76,9 @@ public class LoginUI {
             } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(register_frame, "Registration failed: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(register_frame, "Hashing error: " + e.getMessage());
             }
         });
 
@@ -104,21 +111,26 @@ public class LoginUI {
         JButton login_btn = new JButton("Go");
         login_btn.addActionListener(_ -> {
             String email1 = email1_field.getText().trim();
-            String passwd1 = new String(passwd1_field.getPassword());
+            char[] passwd1 = passwd1_field.getPassword();
             String email2 = email2_field.getText().trim();
-            String passwd2 = new String(passwd2_field.getPassword());
+            char[] passwd2 = passwd2_field.getPassword();
 
-            if(email1.isEmpty() || passwd1.isEmpty() || email2.isEmpty() || passwd2.isEmpty()) {
+            if(email1.isEmpty() || passwd1.length == 0 || email2.isEmpty() || passwd2.length == 0) {
                 JOptionPane.showMessageDialog(login_frame, "Please fill in all the fields.");
                 return;
             }
 
             try {
+                String hashed_passwd1 = CryptoUtil.hash_passwd(passwd1);
+                Arrays.fill(passwd1, '\0');
+                String hashed_passwd2 = CryptoUtil.hash_passwd(passwd2);
+                Arrays.fill(passwd2, '\0');
+
                 String sql = "SELECT * FROM credentials WHERE email = ? AND passwd = ?";
                 PreparedStatement statement = connection.prepareStatement(sql);
 
                 statement.setString(1, email1);
-                statement.setString(2, passwd1);
+                statement.setString(2, hashed_passwd1);
                 ResultSet res = statement.executeQuery();
                 if(!res.next()) {
                     JOptionPane.showMessageDialog(login_frame, "Invalid credentials for player 1.");
@@ -129,10 +141,11 @@ public class LoginUI {
                 int won1 = res.getInt("won");
 
                 statement.setString(1, email2);
-                statement.setString(2, passwd2);
+                statement.setString(2, hashed_passwd2);
                 res = statement.executeQuery();
                 if(!res.next()) {
                     JOptionPane.showMessageDialog(login_frame, "Invalid credentials for player 2.");
+                    return;
                 }
 
                 String name2 = res.getString("name");
@@ -148,6 +161,9 @@ public class LoginUI {
             } catch (SQLException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(login_frame, "Login failed: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(login_frame, "Hashing error: " + e.getMessage());
             }
         });
 

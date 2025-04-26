@@ -17,9 +17,15 @@ From here, the player can simply proceed to play the game. The win count will be
 
 ## Shortcomings
 
-- No encryption whatsoever. The user accounts are not secure.
+- No full-database encryption. The user accounts are not secure.
 - Prone to SQL injection.
 - Outdated GUI library is in use, and no styling is done, the interface is not pretty.
+
+## Possible Improvements
+
+- Switch to JavaFX.
+- Implement over-the-internet play.
+- Implement full-database encryption.
 
 ## Contribute
 
