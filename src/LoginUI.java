@@ -91,6 +91,9 @@ public class LoginUI {
             if(name.isEmpty() || email.isEmpty() || passwd.length == 0) {
                 JOptionPane.showMessageDialog(register_frame, "Please fill in all the fields.");
                 return;
+            } else if(!CryptoUtil.check_email_format(email)) {
+                JOptionPane.showMessageDialog(register_frame, "Invalid email format.");
+                return;
             }
 
             try {
