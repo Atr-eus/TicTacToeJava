@@ -51,11 +51,11 @@ public class GameUI {
         this.frame = new JFrame();
         frame.setTitle("Tic Tac Toe");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 800);
+        frame.setSize(800, 1000);
         frame.setLayout(new BorderLayout());
 
         this.info_panel = new JPanel();
-        info_panel.setLayout(new GridLayout(2, 4, 10, 10));
+        info_panel.setLayout(new GridLayout(4, 2, 10, 10));
         info_panel.add(p1_name);
         info_panel.add(p1_mail);
         info_panel.add(p1_won);

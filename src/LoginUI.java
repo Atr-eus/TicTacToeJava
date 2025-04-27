@@ -11,25 +11,62 @@ public class LoginUI {
     private TicTacToePlayer player2;
 
     LoginUI() {
+        this.improved_UI();
         this.connect_to_DB();
         this.initial_UI();
     }
 
+    private void improved_UI() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("Button.font", new Font("SansSerif", Font.BOLD, 16));
+            UIManager.put("Label.font", new Font("SansSerif", Font.BOLD, 14));
+            UIManager.put("TextField.font", new Font("SansSerif", Font.PLAIN, 14));
+            UIManager.put("PasswordField.font", new Font("SansSerif", Font.PLAIN, 14));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Failed to set system look and feel: " + e.getMessage());
+        }
+    }
+
     private void initial_UI() {
-        frame = new JFrame();
+        frame = new JFrame("Tic Tac Toe - Welcome");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setTitle("Tic Tac Toe Auth");
         frame.setResizable(false);
-        frame.setSize(300, 300);
+        frame.setSize(450, 250);
         frame.setLayout(new FlowLayout());
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+        panel.setBackground(new Color(27, 39, 56));
+
+        JLabel title = new JLabel("Welcome to Tic Tac Toe!");
+        title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.CYAN);
 
         JButton login_btn = new JButton("Login and Play");
         JButton register_btn = new JButton("Register");
+
+        login_btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        register_btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        login_btn.setBackground(Color.ORANGE);
+        login_btn.setForeground(Color.WHITE);
+        login_btn.setFocusPainted(false);
+        register_btn.setBackground(Color.GREEN);
+        register_btn.setForeground(Color.WHITE);
+
         register_btn.addActionListener(_ -> this.register_UI());
         login_btn.addActionListener(_ -> this.login_UI());
 
-        frame.add(login_btn);
-        frame.add(register_btn);
+        panel.add(title);
+        panel.add(Box.createRigidArea(new Dimension(0, 30)));
+        panel.add(login_btn);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(register_btn);
+
+        frame.setContentPane(panel);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
@@ -117,6 +154,9 @@ public class LoginUI {
 
             if(email1.isEmpty() || passwd1.length == 0 || email2.isEmpty() || passwd2.length == 0) {
                 JOptionPane.showMessageDialog(login_frame, "Please fill in all the fields.");
+                return;
+            } else if(email1.equals(email2)) {
+                JOptionPane.showMessageDialog(login_frame, "Player 1 and Player 2 cannot be the same.");
                 return;
             }
 
@@ -216,9 +256,8 @@ public class LoginUI {
 
         statement.setString(1, p1_email);
         statement.setString(2, p2_email);
-        ResultSet res = statement.executeQuery();
 
-        return res;
+        return statement.executeQuery();
     }
 
     private void connect_to_DB() {
