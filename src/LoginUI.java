@@ -4,7 +4,6 @@ import java.sql.*;
 import java.util.Arrays;
 
 public class LoginUI {
-    private final String DB_URL = "jdbc:mysql://localhost:3306/entries";
     private JFrame frame;
     private Connection connection;
     private TicTacToePlayer player1;
@@ -262,7 +261,7 @@ public class LoginUI {
 
     private void connect_to_DB() {
         try {
-            connection = DriverManager.getConnection(DB_URL, "root", "");
+            connection = DriverManager.getConnection(DatabaseUtil.DB_URL + DatabaseUtil.DB_NAME, DatabaseUtil.DB_USER, DatabaseUtil.DB_PASS);
         } catch (SQLException e) {
             e.printStackTrace();
 

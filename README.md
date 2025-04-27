@@ -17,11 +17,17 @@ A game will only begin if both users are logged in successfully. However, it wil
 
 ## MySQL Schema
 
-The default `xampp` configuration for MySQL server is hardcoded in the project for now. After creating a database `entries`;
+The default `xampp` configuration for MySQL server is hardcoded in the project for now.
+
+- Create database `entries` and use it for subsequent operations.
+```sql
+CREATE DATABASE IF NOT EXISTS entries;
+USE entries;
+```
 
 - Create table `credentials` for storing account information.
 ```sql
-CREATE TABLE credentials (
+CREATE TABLE IF NOT EXISTS credentials (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
     email VARCHAR(100) UNIQUE,
@@ -29,17 +35,20 @@ CREATE TABLE credentials (
     passwd VARCHAR(255)
 );
 ```
+
 - Create table `saved_games` for storing information of the latest unfinished game between a distinct pair of players.
 ```sql
-CREATE TABLE saved_games (
+CREATE TABLE IF NOT EXISTS saved_games (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    player1_email VARCHAR(255),
-    player2_email VARCHAR(255),
-    board_state VARCHAR(9), -- selialized format of the board. e.g., "XOX_O____"
-    turn BOOLEAN, -- true = O's turn, false = X's turn
-    UNIQUE (player1_email, player2_email) -- make sure the pair is distinct
+    player1_email VARCHAR(100),
+    player2_email VARCHAR(100),
+    board_state VARCHAR(9), -- serialized board format like "XOX_O____"
+    turn BOOLEAN,           -- true = O's turn, false = X's turn
+    UNIQUE (player1_email, player2_email) -- unique player pair
 );
 ```
+
+**PS**: No need to run these manually. As long as the server is running on the fixed URL, the program will create DB and tables according to this schema.
 
 ## Screenshots
 
